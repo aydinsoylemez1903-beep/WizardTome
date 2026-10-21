@@ -1,6 +1,6 @@
 # WizardTome — 3D Wizard Prototype
 
-An original stylized-fantasy third-person wizard combat prototype for **Unity 6.3 LTS**.
+A **mobile-first** stylized-fantasy third-person wizard combat prototype for **Unity 6.3 LTS**. The primary target platforms are **Android and iOS**.
 
 ## Quick start
 1. Install Unity Hub and Unity Editor **6000.3.26f1** (or another Unity 6.3 LTS editor).
@@ -10,7 +10,14 @@ An original stylized-fantasy third-person wizard combat prototype for **Unity 6.
 
 The editor menu creates a saved scene. All prototype models are generated from Unity primitives when the game starts—no external assets are required.
 
-## Controls (keyboard + mouse)
+## Mobile controls (Android / iOS)
+- **Left virtual joystick:** move
+- **Swipe right side:** rotate follow camera
+- **SPELL:** cast magic projectile
+- **JUMP:** jump
+- **RUN (hold):** sprint
+
+## Editor test controls (keyboard + mouse)
 - **WASD / Arrow keys:** move relative to the camera
 - **Mouse:** rotate camera (hold right mouse button)
 - **Shift:** sprint
@@ -27,10 +34,11 @@ The editor menu creates a saved scene. All prototype models are generated from U
 - Minimal on-screen HUD and instructions
 
 ## Scope & limitations
-This is a **source-only prototype**. The character and environments are intentionally primitive placeholder geometry. It has not yet been compiled or play-tested inside Unity here. Mobile touch controls, imported character models, animation clips, sound and production UI come later.
+This is a **source-only prototype**. The character and environments are intentionally primitive placeholder geometry. It has not yet been compiled or play-tested inside Unity here. Touchscreen controls are implemented as an early prototype, but have **not been verified on physical devices**. Imported character models, animation clips, sound and production UI come later. Build and test Android through Unity Android Build Support; iOS builds require a Mac with Xcode for the standard local workflow.
 
 ## Folder structure
 - `Assets/Scripts/WizardTomeBootstrap.cs` creates the runtime test world.
+- `Assets/Scripts/WizardMobileInput.cs` implements touchscreen controls.
 - `Assets/Editor/WizardTomeSceneCreator.cs` provides the scene creation menu.
 - `ProjectSettings/ProjectVersion.txt` records editor version.
 - `Packages/manifest.json` uses Unity default built-in packages.
