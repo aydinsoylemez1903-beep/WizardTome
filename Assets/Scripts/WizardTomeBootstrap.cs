@@ -82,6 +82,7 @@ public sealed class WizardTomeBootstrap : MonoBehaviour
         var control = wizard.AddComponent<WizardMotor>();
         control.followCamera = follow;
         wizard.AddComponent<WizardSpellCaster>();
+        wizard.AddComponent<WizardMobileInput>();
 
         for (int i = 0; i < 3; i++)
         {
@@ -165,7 +166,13 @@ public sealed class WizardFollowCamera : MonoBehaviour
     private void LateUpdate()
     {
         if (target == null) return;
-        if (Input.GetMouseButton(1))
+        if (Application.isMobilePlatform)
+        {
+            Vector2 drag = WizardMobileInput.CameraDelta;
+            yaw += drag.x * .16f;
+            pitch = Mathf.Clamp(pitch - drag.y * .16f, -8f, 65f);
+        }
+        else if (Input.GetMouseButton(1))
         {
             yaw += Input.GetAxis("Mouse X") * 3f;
             pitch = Mathf.Clamp(pitch - Input.GetAxis("Mouse Y") * 2.2f, -8f, 65f);
@@ -191,18 +198,18 @@ public sealed class WizardMotor : MonoBehaviour
     private void Awake() { character = GetComponent<CharacterController>(); }
     private void Update()
     {
-        float x = Input.GetAxisRaw("Horizontal");
-        float z = Input.GetAxisRaw("Vertical");
+        float x = Application.isMobilePlatform ? WizardMobileInput.Move.x : Input.GetAxisRaw("Horizontal");
+        float z = Application.isMobilePlatform ? WizardMobileInput.Move.y : Input.GetAxisRaw("Vertical");
         Vector3 input = Vector3.ClampMagnitude(new Vector3(x, 0, z), 1);
         Vector3 movement = Quaternion.Euler(0, followCamera.yaw, 0) * input;
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : speed;
+        float currentSpeed = (Application.isMobilePlatform ? WizardMobileInput.Sprint : Input.GetKey(KeyCode.LeftShift)) ? sprintSpeed : speed;
         if (movement.sqrMagnitude > .01f)
         {
             Quaternion face = Quaternion.LookRotation(movement, Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, face, Time.deltaTime * 13f);
         }
         if (character.isGrounded && verticalVelocity < 0f) verticalVelocity = -2f;
-        if (character.isGrounded && Input.GetKeyDown(KeyCode.Space))
+        if (character.isGrounded && (Application.isMobilePlatform ? WizardMobileInput.JumpPressed : Input.GetKeyDown(KeyCode.Space)))
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
         verticalVelocity += gravity * Time.deltaTime;
         character.Move((movement * currentSpeed + Vector3.up * verticalVelocity) * Time.deltaTime);
@@ -224,7 +231,7 @@ public sealed class WizardSpellCaster : MonoBehaviour
     private void Update()
     {
         mana = Mathf.Min(maxMana, mana + manaRegen * Time.deltaTime);
-        if ((Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.F)) &&
+        if ((Application.isMobilePlatform ? WizardMobileInput.CastPressed : (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.F))) &&
             Time.time >= nextCast && mana >= cost)
         {
             nextCast = Time.time + cooldown;
@@ -248,6 +255,7 @@ public sealed class WizardSpellCaster : MonoBehaviour
     }
     private void OnGUI()
     {
+        if (Application.isMobilePlatform) return;
         GUI.Box(new Rect(16, 16, 310, 102), "WIZARDTOME  |  Training Grounds");
         GUI.Label(new Rect(30, 46, 270, 22), "Mana: " + Mathf.CeilToInt(mana) + " / " + maxMana);
         GUI.Label(new Rect(30, 69, 290, 22), "WASD move | RMB camera | Space jump");
