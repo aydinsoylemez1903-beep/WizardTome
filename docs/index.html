@@ -3,7 +3,7 @@
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#10162a;color:white;font:600 15px system-ui;touch-action:none;-webkit-user-select:none;user-select:none}canvas{display:block}#hud{position:absolute;top:max(12px,env(safe-area-inset-top));left:max(15px,env(safe-area-inset-left));text-shadow:0 2px 5px #000;pointer-events:none}#hud small{display:block;color:#d2befb}#bar{height:8px;width:150px;border:1px solid #ac9cda;border-radius:9px;margin-top:8px;background:#272743}#fill{height:100%;width:100%;background:#66c7fa;border-radius:8px}#pad{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));left:max(26px,env(safe-area-inset-left));width:126px;height:126px;border:2px solid #b9b7ed88;border-radius:50%;background:#6c66ac33;touch-action:none}#knob{position:absolute;left:38px;top:38px;width:46px;height:46px;border-radius:50%;background:#c1b1faab;pointer-events:none}button{position:absolute;border:2px solid #c9b6f9aa;color:white;font-weight:800;border-radius:50%;touch-action:none;background:#5e3f99bb;box-shadow:0 3px 15px #100e30bb}#spell{right:max(24px,env(safe-area-inset-right));bottom:38px;width:86px;height:86px;background:#693cb9dd}#jump{right:122px;bottom:24px;width:58px;height:58px}#run{right:122px;bottom:94px;width:58px;height:58px}#note{position:absolute;top:12px;right:14px;font-size:12px;color:#eae7ff;pointer-events:none}#rotate{display:none;position:fixed;inset:0;z-index:10;background:#15152c;text-align:center;align-items:center;justify-content:center;padding:28px;font-size:22px}#hint{position:absolute;bottom:8px;left:40%;font-size:11px;opacity:.75;pointer-events:none}@media(orientation:portrait){#rotate{display:flex}}@media(max-height:380px){#pad{width:100px;height:100px}#knob{left:29px;top:29px;width:40px;height:40px}#spell{width:68px;height:68px}#jump,#run{width:49px;height:49px;right:102px}}
  #chooseModel{position:absolute;top:53px;right:14px;z-index:8;font-size:12px;background:#5b428a;padding:8px 11px;border:1px solid #a0a4f0;border-radius:8px;color:white;touch-action:manipulation}#localModel{display:none}</style></head><body>
-<div id="hud">✦ WIZARDTOME <small>Mobil 3D prototip • v0.8</small><div id="bar"><div id="fill"></div></div><small id="status">Mana 100 • Golem 3/3</small></div><div id="note">Sağ tarafta kaydır: kamera<br><span id="modelStatus">Oyun çalışıyor • 3D model kontrol ediliyor</span></div><label id="chooseModel" for="localModel">Karakteri değiştir</label><input id="localModel" type="file" accept=".glb,model/gltf-binary"><div id="pad"><div id="knob"></div></div><button id="spell">BÜYÜ</button><button id="jump">ZIPLA</button><button id="run">KOŞ</button><div id="hint">Soldan hareket et • sağdan bak</div><div id="rotate">📱 Telefonu yatay çevir.<br>WizardTome yatay oynanır.</div>
+<div id="hud">✦ WIZARDTOME <small>Mobil 3D prototip • v0.9</small><div id="bar"><div id="fill"></div></div><small id="status">Mana 100 • Golem 3/3</small></div><div id="note">Sağ tarafta kaydır: kamera<br><span id="modelStatus">Oyun çalışıyor • 3D model kontrol ediliyor</span></div><label id="chooseModel" for="localModel">Karakteri değiştir</label><input id="localModel" type="file" accept=".glb,model/gltf-binary"><div id="pad"><div id="knob"></div></div><button id="spell">BÜYÜ</button><button id="jump">ZIPLA</button><button id="run">KOŞ</button><div id="hint">Soldan hareket et • sağdan bak</div><div id="rotate">📱 Telefonu yatay çevir.<br>WizardTome yatay oynanır.</div>
 <script>
 // Prevent iOS Safari pinch-to-zoom and double-tap zoom during multi-touch gameplay.
 document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});
@@ -30,7 +30,7 @@ for(const x of [-19,19]){cyl(x,2,i*14-5,.37,.55,4,m.wood);ball(x,4.6,i*14-5,2.2,
 for(const x of [-9,9]){const c=box(x,.76,i*12+5,.9,1.4,.9,m.crystal);c.rotation.set(.3,.6,.25)}}
 const player=new THREE.Group();scene.add(player);player.position.set(0,0,-15);
 // WizardTome signature hero — layered original fantasy wizard.
-const torso=new THREE.Group();player.add(torso);
+const torso=new THREE.Group();player.add(torso);torso.visible=false;
 const innerRobe=cyl(0,1.02,0,.32,.48,1.32,m.dark,torso);
 const outerRobe=cyl(0,1.02,0,.44,.72,1.50,m.robe,torso);
 const shoulderCape=box(0,1.86,.10,1.34,.36,.62,m.dark,torso);shoulderCape.rotation.x=.18;
@@ -179,7 +179,7 @@ characterStatus.textContent='Kaydedilmiş karakter aranıyor...';
   try{
     const saved=await readHero();
     if(saved){characterStatus.textContent='Kayıtlı büyücü yükleniyor...';await useHeroBuffer(saved);characterStatus.textContent+=' • kayıtlı karakter'}
-    else characterStatus.textContent='Başlamak için GLB dosyanı bir kez seç';
-  }catch(err){characterStatus.textContent='GLB seçerek karakteri aç';console.warn('Local character storage:',err)}
+    else characterStatus.textContent='Kayıtlı GLB bulunamadı • Karakteri değiştir ile dosyanı seç';
+  }catch(err){characterStatus.textContent='Karakter kaydı okunamadı • GLB seç';console.warn('Local character storage:',err)}
 })();
 </script></body></html>
