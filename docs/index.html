@@ -136,7 +136,7 @@ const loadTimeout=setTimeout(()=>{if(!modelReady)characterStatus.textContent='3D
   modelReady=true;clearTimeout(loadTimeout);
   let rig=false;obj.traverse(o=>{if(o.isSkinnedMesh)rig=true;});
   characterStatus.textContent=rig?'3D model açıldı • rig var':'3D model açıldı • rig yok';
-  if(gltf.animations.length){const mixer=new THREE.AnimationMixer(obj);mixer.clipAction(gltf.animations[0]).play();const clock=new THREE.Clock();renderer.setAnimationLoop(()=>{mixer.update(clock.getDelta());});}
+  if(gltf.animations.length)characterStatus.textContent+=' • animasyon klibi var';
  } catch(err) {
   modelReady=true;clearTimeout(loadTimeout);
   characterStatus.textContent='3D model açılamadı • yedek karakter aktif';
