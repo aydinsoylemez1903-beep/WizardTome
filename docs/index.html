@@ -2,8 +2,8 @@
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#11162c"><title>WizardTome — Mobile Test</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#10162a;color:white;font:600 15px system-ui;touch-action:none;-webkit-user-select:none;user-select:none}canvas{display:block}#hud{position:absolute;top:max(12px,env(safe-area-inset-top));left:max(15px,env(safe-area-inset-left));text-shadow:0 2px 5px #000;pointer-events:none}#hud small{display:block;color:#d2befb}#bar{height:8px;width:150px;border:1px solid #ac9cda;border-radius:9px;margin-top:8px;background:#272743}#fill{height:100%;width:100%;background:#66c7fa;border-radius:8px}#pad{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));left:max(26px,env(safe-area-inset-left));width:126px;height:126px;border:2px solid #b9b7ed88;border-radius:50%;background:#6c66ac33;touch-action:none}#knob{position:absolute;left:38px;top:38px;width:46px;height:46px;border-radius:50%;background:#c1b1faab;pointer-events:none}button{position:absolute;border:2px solid #c9b6f9aa;color:white;font-weight:800;border-radius:50%;touch-action:none;background:#5e3f99bb;box-shadow:0 3px 15px #100e30bb}#spell{right:max(24px,env(safe-area-inset-right));bottom:38px;width:86px;height:86px;background:#693cb9dd}#jump{right:122px;bottom:24px;width:58px;height:58px}#run{right:122px;bottom:94px;width:58px;height:58px}#note{position:absolute;top:12px;right:14px;font-size:12px;color:#eae7ff;pointer-events:none}#rotate{display:none;position:fixed;inset:0;z-index:10;background:#15152c;text-align:center;align-items:center;justify-content:center;padding:28px;font-size:22px}#hint{position:absolute;bottom:8px;left:40%;font-size:11px;opacity:.75;pointer-events:none}@media(orientation:portrait){#rotate{display:flex}}@media(max-height:380px){#pad{width:100px;height:100px}#knob{left:29px;top:29px;width:40px;height:40px}#spell{width:68px;height:68px}#jump,#run{width:49px;height:49px;right:102px}}
-</style></head><body>
-<div id="hud">✦ WIZARDTOME <small>Mobil 3D prototip • v0.6</small><div id="bar"><div id="fill"></div></div><small id="status">Mana 100 • Golem 3/3</small></div><div id="note">Sağ tarafta kaydır: kamera<br><span id="modelStatus">Oyun çalışıyor • 3D model kontrol ediliyor</span></div><div id="pad"><div id="knob"></div></div><button id="spell">BÜYÜ</button><button id="jump">ZIPLA</button><button id="run">KOŞ</button><div id="hint">Soldan hareket et • sağdan bak</div><div id="rotate">📱 Telefonu yatay çevir.<br>WizardTome yatay oynanır.</div>
+ #chooseModel{position:absolute;top:53px;right:14px;z-index:8;font-size:12px;background:#5b428a;padding:8px 11px;border:1px solid #a0a4f0;border-radius:8px;color:white;touch-action:manipulation}#localModel{display:none}</style></head><body>
+<div id="hud">✦ WIZARDTOME <small>Mobil 3D prototip • v0.6.1</small><div id="bar"><div id="fill"></div></div><small id="status">Mana 100 • Golem 3/3</small></div><div id="note">Sağ tarafta kaydır: kamera<br><span id="modelStatus">Oyun çalışıyor • 3D model kontrol ediliyor</span></div><label id="chooseModel" for="localModel">Tek karakter GLB seç</label><input id="localModel" type="file" accept=".glb,model/gltf-binary"><div id="pad"><div id="knob"></div></div><button id="spell">BÜYÜ</button><button id="jump">ZIPLA</button><button id="run">KOŞ</button><div id="hint">Soldan hareket et • sağdan bak</div><div id="rotate">📱 Telefonu yatay çevir.<br>WizardTome yatay oynanır.</div>
 <script>
 // Prevent iOS Safari pinch-to-zoom and double-tap zoom during multi-touch gameplay.
 document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});
@@ -114,33 +114,29 @@ document.getElementById('fill').style.width=mana+'%';document.getElementById('st
 renderer.render(scene,camera)}requestAnimationFrame(tick);
 
 const characterStatus=document.getElementById('modelStatus');
-const modelUrl='https://storage.to3d.app/generated-3d/models/2026-10-22/task_8539b8f4-0d1b-4e38-b061-0857116464c7_model.glb';
-let modelReady=false;
-const loadTimeout=setTimeout(()=>{if(!modelReady)characterStatus.textContent='3D model gecikti • oyun yedek karakterle açık';},12000);
-(async()=>{
- try {
-  // Do not block game initialization/rendering on model module or network.
-  const {GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/GLTFLoader.js');
-  const gltf=await new Promise((resolve,reject)=>new GLTFLoader().load(modelUrl,resolve,undefined,reject));
+let realAsset=null;
+async function installCharacter(gltf){
   const obj=gltf.scene;
   const bounds=new THREE.Box3().setFromObject(obj),height=bounds.getSize(new THREE.Vector3()).y;
-  if(!Number.isFinite(height)||height<.01)throw Error('Geçersiz model boyutu');
+  if(!Number.isFinite(height)||height<.01)throw Error('Model boyutu geçersiz');
   obj.scale.setScalar(2.9/height);
   obj.updateMatrixWorld(true);
-  const scaled=new THREE.Box3().setFromObject(obj);
-  const center=scaled.getCenter(new THREE.Vector3());
+  const scaled=new THREE.Box3().setFromObject(obj),center=scaled.getCenter(new THREE.Vector3());
   obj.position.set(-center.x,-scaled.min.y,-center.z);
-  player.add(obj);
-  // Only remove the fallback character after the real mesh is ready.
-  torso.visible=false;
-  modelReady=true;clearTimeout(loadTimeout);
-  let rig=false;obj.traverse(o=>{if(o.isSkinnedMesh)rig=true;});
-  characterStatus.textContent=rig?'3D model açıldı • rig var':'3D model açıldı • rig yok';
-  if(gltf.animations.length)characterStatus.textContent+=' • animasyon klibi var';
- } catch(err) {
-  modelReady=true;clearTimeout(loadTimeout);
-  characterStatus.textContent='3D model açılamadı • yedek karakter aktif';
-  console.warn('WizardTome model error:',err);
- }
-})();
+  if(realAsset)player.remove(realAsset);
+  player.add(obj);realAsset=obj;torso.visible=false;
+  let rig=false;obj.traverse(o=>{if(o.isSkinnedMesh)rig=true});
+  characterStatus.textContent=rig?'Seçilen 3D model açıldı • rig var':'Seçilen 3D model açıldı • rig yok';
+}
+document.getElementById('localModel').addEventListener('change',async e=>{
+  const file=e.target.files&&e.target.files[0];if(!file)return;
+  characterStatus.textContent='Seçilen GLB yükleniyor...';
+  try{
+    const {GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/GLTFLoader.js');
+    const buffer=await file.arrayBuffer();
+    const gltf=await new Promise((resolve,reject)=>new GLTFLoader().parse(buffer,'',resolve,reject));
+    await installCharacter(gltf);
+  }catch(err){characterStatus.textContent='Dosya açılamadı • '+(err.message||'hata');console.error(err)}
+});
+characterStatus.textContent='Tek karakteri eklemek için GLB seç';
 </script></body></html>
