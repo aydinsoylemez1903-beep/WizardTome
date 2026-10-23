@@ -3,7 +3,7 @@
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#10162a;color:white;font:600 15px system-ui;touch-action:none;-webkit-user-select:none;user-select:none}canvas{display:block!important;position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;z-index:0}#hud,#note,#pad,#hint,#chooseModel,#spell,#jump,#run{z-index:2}#hud{position:absolute;top:max(12px,env(safe-area-inset-top));left:max(15px,env(safe-area-inset-left));text-shadow:0 2px 5px #000;pointer-events:none}#hud small{display:block;color:#d2befb}#bar{height:8px;width:150px;border:1px solid #ac9cda;border-radius:9px;margin-top:8px;background:#272743}#fill{height:100%;width:100%;background:#66c7fa;border-radius:8px}#pad{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));left:max(26px,env(safe-area-inset-left));width:126px;height:126px;border:2px solid #b9b7ed88;border-radius:50%;background:#6c66ac33;touch-action:none}#knob{position:absolute;left:38px;top:38px;width:46px;height:46px;border-radius:50%;background:#c1b1faab;pointer-events:none}button{position:absolute;border:2px solid #c9b6f9aa;color:white;font-weight:800;border-radius:50%;touch-action:none;background:#5e3f99bb;box-shadow:0 3px 15px #100e30bb}#spell{right:max(24px,env(safe-area-inset-right));bottom:38px;width:86px;height:86px;background:#693cb9dd}#jump{right:122px;bottom:24px;width:58px;height:58px}#run{right:122px;bottom:94px;width:58px;height:58px}#note{position:absolute;top:12px;right:14px;font-size:12px;color:#eae7ff;pointer-events:none}#rotate{display:none;position:fixed;inset:0;z-index:10;background:#15152c;text-align:center;align-items:center;justify-content:center;padding:28px;font-size:22px}#hint{position:absolute;bottom:8px;left:40%;font-size:11px;opacity:.75;pointer-events:none}@media(orientation:portrait){#rotate{display:flex}}@media(max-height:380px){#pad{width:100px;height:100px}#knob{left:29px;top:29px;width:40px;height:40px}#spell{width:68px;height:68px}#jump,#run{width:49px;height:49px;right:102px}}
  #chooseModel{position:absolute;top:53px;right:14px;z-index:8;font-size:12px;background:#5b428a;padding:8px 11px;border:1px solid #a0a4f0;border-radius:8px;color:white;touch-action:manipulation}#localModel{display:none}</style></head><body>
-<div id="hud">✦ WIZARDTOME <small>Mobil 3D prototip • v1.0.6</small><div id="bar"><div id="fill"></div></div><small id="status">Mana 100 • Golem 3/3</small></div><div id="note">Sağ tarafta kaydır: kamera<br><span id="modelStatus">Oyun çalışıyor • 3D model kontrol ediliyor</span></div><label id="chooseModel" for="localModel">Karakteri değiştir</label><input id="localModel" type="file" accept=".glb,model/gltf-binary"><div id="pad"><div id="knob"></div></div><button id="spell">BÜYÜ</button><button id="jump">ZIPLA</button><button id="run">KOŞ</button><div id="hint">Soldan hareket et • sağdan bak</div><div id="rotate">📱 Telefonu yatay çevir.<br>WizardTome yatay oynanır.</div>
+<div id="hud">✦ WIZARDTOME <small>Mobil 3D prototip • v1.0.7</small><div id="bar"><div id="fill"></div></div><small id="status">Mana 100 • Golem 3/3</small></div><div id="note">Sağ tarafta kaydır: kamera<br><span id="modelStatus">Oyun çalışıyor • 3D model kontrol ediliyor</span></div><label id="chooseModel" for="localModel">Karakteri değiştir</label><input id="localModel" type="file" accept=".glb,model/gltf-binary"><div id="pad"><div id="knob"></div></div><button id="spell">BÜYÜ</button><button id="jump">ZIPLA</button><button id="run">KOŞ</button><div id="hint">Soldan hareket et • sağdan bak</div><div id="rotate">📱 Telefonu yatay çevir.<br>WizardTome yatay oynanır.</div>
 <script>
 // Prevent iOS Safari pinch-to-zoom and double-tap zoom during multi-touch gameplay.
 document.addEventListener('gesturestart', e => e.preventDefault(), {passive:false});
@@ -16,13 +16,13 @@ document.addEventListener('dblclick', e => e.preventDefault(), {passive:false});
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x8893be);scene.fog=new THREE.Fog(0x8893be,32,92);
 const camera=new THREE.PerspectiveCamera(67,Math.max(1,document.documentElement.clientWidth)/Math.max(1,document.documentElement.clientHeight),.1,140);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.65));renderer.setSize(document.documentElement.clientWidth,document.documentElement.clientHeight,false);document.body.prepend(renderer.domElement);
+camera.layers.enable(1);const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.65));renderer.setSize(document.documentElement.clientWidth,document.documentElement.clientHeight,false);document.body.prepend(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xdee3ff,0x303a51,2.2));
 const sun=new THREE.DirectionalLight(0xffd4ae,2.4);sun.position.set(-18,30,16);scene.add(sun);
 // Mobile-friendly three-point character lighting. No costly real-time shadows.
-const heroKey=new THREE.DirectionalLight(0xffffff,0);heroKey.position.set(-3,7,-5);scene.add(heroKey);
-const heroFill=new THREE.DirectionalLight(0xbccfff,0);heroFill.position.set(5,4,-2);scene.add(heroFill);
-const heroRim=new THREE.DirectionalLight(0xffdbb3,0);heroRim.position.set(1,6,5);scene.add(heroRim);
+const heroKey=new THREE.DirectionalLight(0xffffff,2.6);heroKey.layers.set(1);heroKey.position.set(-3,7,-5);scene.add(heroKey);
+const heroFill=new THREE.DirectionalLight(0xbccfff,1.5);heroFill.layers.set(1);heroFill.position.set(5,4,-2);scene.add(heroFill);
+const heroRim=new THREE.DirectionalLight(0xffdbb3,0.9);heroRim.layers.set(1);heroRim.position.set(1,6,5);scene.add(heroRim);
 const mats={grass:0x386e58,path:0x75728b,rock:0x55526f,roof:0x713ab7,wood:0x594752,leaf:0x276765,crystal:0x66d8ff,robe:0x7547c4,gold:0xf6c984,face:0xe4b89e,dark:0x2b2641};
 function mat(color){return new THREE.MeshStandardMaterial({color,roughness:.7,metalness:0})}
 const m={};for(const k in mats)m[k]=mat(mats[k]);
@@ -139,10 +139,12 @@ const characterStatus=document.getElementById('modelStatus');
 let realAsset=null;let heroMixer=null;let heroActions=null;let currentHeroAction='';
 async function installCharacter(gltf){
   const obj=gltf.scene;
-  // Brighten only the imported wizard's textured surfaces, not the surrounding world.
+  // Brighten the imported wizard AND the staff using dedicated mesh lighting.
+  // They share the same skinned mesh; don't apply the malformed rig walk to the staff.
   // A low-intensity self-illumination contribution makes dark albedo details legible on mobile.
   obj.traverse(child=>{
     if(!child.isMesh)return;
+    child.layers.enable(1);
     const tune=mat=>{
       if(!mat || !mat.isMeshStandardMaterial)return mat;
       const result=mat.clone();
@@ -165,9 +167,12 @@ async function installCharacter(gltf){
   // Correct only the visual model's local axis; do not reverse joystick movement.
   obj.rotation.y=Math.PI;
   obj.userData.baseY=obj.position.y;player.add(obj);realAsset=obj;torso.visible=false;
-  heroMixer=null;heroActions=null;currentHeroAction='';if(gltf.animations&&gltf.animations.length){heroMixer=new THREE.AnimationMixer(obj);heroActions={};for(const clip of gltf.animations)heroActions[clip.name]=heroMixer.clipAction(clip)}
+  // Animation clips deform the staff because it is merged into a single skinned mesh.
+  // Until the staff has its own independent rig/mesh, use the rigid whole-character
+  // locomotion preview to keep the staff shape intact during movement.
+  heroMixer=null;heroActions=null;currentHeroAction='';
   let rig=false;obj.traverse(o=>{if(o.isSkinnedMesh)rig=true});
-  characterStatus.textContent=rig?(heroMixer?'3D karakter • rig ve animasyonlar çalışıyor':'3D karakter • rig var'):'3D karakter • hareket önizlemesi (rig yok)';
+  characterStatus.textContent=rig?'Asa sabitlendi • iskelet yürüyüşü geçici kapalı':'Asa sabit • karakter ışığı etkin';
 }
 // Persist the user's actual GLB locally, without external file-hosting or paid services.
 // IndexedDB is best-effort: Safari private browsing or cleared website data can remove it.
